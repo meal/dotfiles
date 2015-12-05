@@ -3,6 +3,7 @@ set fileencoding=utf8
 filetype plugin on
 filetype indent on
 filetype on
+call pathogen#infect()
 
 
 " set line length for all files at 78
