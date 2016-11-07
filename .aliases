@@ -1,0 +1,2 @@
+bubo='brew update && brew outdated'
+bubbc='brew upgrade && brew cleanup'
