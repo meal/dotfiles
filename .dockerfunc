@@ -1,0 +1,134 @@
+#!/bin/bash
+
+export DOCKER_REPO_PREFIX=mkozak
+
+dcleanup(){
+	local containers
+	mapfile -t containers < <(docker ps -aq 2>/dev/null)
+	docker rm "${containers[@]}" 2>/dev/null
+	local volumes
+	mapfile -t volumes < <(docker ps --filter status=exited -q 2>/dev/null)
+	docker rm -v "${volumes[@]}" 2>/dev/null
+	local images
+	mapfile -t images < <(docker images --filter dangling=true -q 2>/dev/null)
+	docker rmi "${images[@]}" 2>/dev/null
+}
+
+del_stopped(){
+	local name=$1
+	local state
+	state=$(docker inspect --format "{{.State.Running}}" "$name" 2>/dev/null)
+
+	if [[ "$state" == "false" ]]; then
+		docker rm "$name"
+	fi
+}
+rmctr(){
+	# shellcheck disable=SC2068
+	docker rm -f $@ 2>/dev/null || true
+}
+relies_on(){
+	for container in "$@"; do
+		local state
+		state=$(docker inspect --format "{{.State.Running}}" "$container" 2>/dev/null)
+
+		if [[ "$state" == "false" ]] || [[ "$state" == "" ]]; then
+			echo "$container is not running, starting it for you."
+			$container
+		fi
+	done
+}
+
+gimp(){
+	del_stopped gimp
+
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-v "${HOME}/Pictures:/root/Pictures" \
+		-v "${HOME}/.gtkrc:/root/.gtkrc" \
+		-e GDK_SCALE \
+		-e GDK_DPI_SCALE \
+		--name gimp \
+		${DOCKER_REPO_PREFIX}/gimp
+}
+http(){
+	docker run -t --rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		--log-driver none \
+		${DOCKER_REPO_PREFIX}/httpie "$@"
+}
+kicad(){
+	del_stopped kicad
+
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-v "${HOME}/kicad:/root/kicad" \
+		-v "${HOME}/.cache/kicad:/root/.cache/kicad" \
+		-v "${HOME}/.config/kicad:/root/.config/kicad" \
+		-e QT_DEVICE_PIXEL_RATIO \
+		-e GDK_SCALE \
+		-e GDK_DPI_SCALE \
+		--device /dev/dri \
+		--name kicad \
+		${DOCKER_REPO_PREFIX}/kicad
+}
+nmap(){
+	docker run --rm -it \
+		--net host \
+		${DOCKER_REPO_PREFIX}/nmap "$@"
+}
+skype(){
+	del_stopped skype
+	relies_on pulseaudio
+
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		--link pulseaudio:pulseaudio \
+		-e PULSE_SERVER=pulseaudio \
+		--security-opt seccomp:unconfined \
+		--device /dev/video0 \
+		--group-add video \
+		--group-add audio \
+		--name skype \
+		${DOCKER_REPO_PREFIX}/skype
+}
+slack(){
+	del_stopped slack
+
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		--device /dev/snd \
+		--device /dev/dri \
+		--device /dev/video0 \
+		--group-add audio \
+		--group-add video \
+		-v "${HOME}/.slack:/root/.config/Slack" \
+		--ipc="host" \
+		--name slack \
+		${DOCKER_REPO_PREFIX}/slack "$@"
+}
+spotify(){
+	del_stopped spotify
+
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-e QT_DEVICE_PIXEL_RATIO \
+		--security-opt seccomp:unconfined \
+		--device /dev/snd \
+		--device /dev/dri \
+		--group-add audio \
+		--group-add video \
+		--name spotify \
+		${DOCKER_REPO_PREFIX}/spotify
+}
+
