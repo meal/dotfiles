@@ -1,0 +1,9 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =7
+let g:netrw_dirhist_1='/home/meal/code/codeboards_updater/config/deploy'
+let g:netrw_dirhist_2='/home/meal/code/unamo/conversion-heatmaps-calculator'
+let g:netrw_dirhist_3='/home/meal/code/hromato'
+let g:netrw_dirhist_4='/home/meal/code/hromato/app'
+let g:netrw_dirhist_5='/home/meal/code/hromato/app/controllers'
+let g:netrw_dirhist_6='/home/meal/code/codeboards_updater/config'
+let g:netrw_dirhist_7='/home/meal/code/codeboards_updater/config/deploy'

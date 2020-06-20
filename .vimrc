@@ -7,7 +7,7 @@ call pathogen#infect()
 
 
 " set line length for all files at 78
-autocmd FileType text setlocal textwidth=78
+autocmd FileType text setlocal textwidth=120
 
 " important settings
 set incsearch
@@ -106,8 +106,6 @@ vnoremap <s-tab> <gv
 
 "" Filetype specific settings
 
-" qml
-au BufNewFile,BufRead  *.qml set filetype=qml
 " json as javascript
 au BufNewFile,BufRead  *.json set filetype=javascript
 
@@ -129,9 +127,6 @@ au BufNewFile,BufRead *.rake set syntax=ruby
 
 
 au BufNewFile,BufRead *tmux.conf set syntax=tmux
-" Clojure
-
-let g:vimclojure#ParenRainbow=1
 
 " Python specific settings
 let NERDTreeIgnore = ['\.pyc$', '\~$', '\.rbc$']
@@ -210,3 +205,5 @@ fun! <SID>StripTrailingWhitespaces()
     call cursor(l, c)
 endfun
 autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
+
+nnoremap <F5> :silent update<Bar>silent !xdg-open %:p &<CR>
